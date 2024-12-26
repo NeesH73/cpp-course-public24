@@ -1,5 +1,6 @@
 #include "list.h"
-
+#include "list.cpp"
+#include "list_internal.cpp"
 #include "iostream"
 
 int main()
