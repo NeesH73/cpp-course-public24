@@ -44,13 +44,42 @@ public:
 
     static double integralFunction(double x) {
         // тут нужно реализовать функцию интеграла S(a, b) = (1+e^x)^0.5 dx
-        return 0;
+        return std::sqrt(1.0 + std::exp(x));
+    }
+
+    // Метод трапеций на подынтервале [a_i, b_i] с n_i шагами
+    static double trapezoidalWorker(double a_i, double b_i, int n_i) {
+        double h = (b_i - a_i) / n_i;
+        double sum = 0.5 * (integralFunction(a_i) + integralFunction(b_i));
+
+        for (int i = 1; i < n_i; ++i) {
+            sum += integralFunction(a_i + i * h);
+        }
+
+        return sum * h;
     }
 
 
     double calculateIntegral() {
         // в зависимости от количество потоков (tn) реализуйте подсчёт интеграла
-        return 0;
+        std::vector<double> results(tn);  
+        std::vector<std::thread> threads;
+        double h_total = (double)(b - a) / n;
+        int n_per_thread = n / tn;
+
+        for (int t = 0; t < tn; ++t) {
+            double start_x = a + t * n_per_thread * h_total;
+            double end_x = start_x + n_per_thread * h_total;
+            threads.emplace_back([&, t, start_x, end_x]() {
+                results[t] = trapezoidalWorker(start_x, end_x, n_per_thread);
+            });
+        }
+
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        return std::accumulate(results.begin(), results.end(), 0.0);
     }
 
 };
